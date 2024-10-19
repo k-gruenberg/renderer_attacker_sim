@@ -20,3 +20,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Return true to indicate that we will respond asynchronously!
     return true;
 });
+
+// cf. https://developer.chrome.com/docs/extensions/develop/concepts/messaging#connect:
+chrome.runtime.onConnect.addListener(function(port) {
+    port.onMessage.addListener(function(msg) {
+        chrome.cookies.getAll({}, // <= privileged API
+            (cookies) => {
+                port.postMessage({original_msg: msg, cookies: cookies});
+            }
+        );
+    });
+});
