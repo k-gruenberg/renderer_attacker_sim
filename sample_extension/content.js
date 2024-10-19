@@ -24,6 +24,17 @@ window.addEventListener("message",
             chrome.runtime.sendMessage(message, (response) => {
                 window.postMessage({type: "FROM_EXTENSION", resp: "responseAttackerSendMessage", payload: response});
             });
+        } else if (req === "attackerSendMessageIgnoreResponse") {
+            let message = event.data.payload;
+            chrome.runtime.sendMessage(message);
+        } else if (req === "attackerRedirectAndSendMessageOnUnload") {
+            let message = event.data.payload;
+            let redirect_destination = event.data.redirect_destination;
+            window.addEventListener("unload", (event) => {
+                chrome.runtime.sendMessage(message);
+            });
+            window.location.href = redirect_destination;
+            // Do not use window.location.replace() as then you won't be able to use the back button!
         } else if (req === "attackerOpenConnection") {
             port = chrome.runtime.connect();
             port.onMessage.addListener((msg, p) => {
